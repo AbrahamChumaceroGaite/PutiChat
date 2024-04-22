@@ -1,35 +1,32 @@
-# Use the official Python image as base
-FROM python:3.9
+# Usar una imagen base
+FROM ubuntu:latest
 
-# Set the working directory inside the container
-WORKDIR /app
+# Actualizar el sistema e instalar dependencias
+RUN apt-get update && \
+    apt-get -y install aria2 python3 python3-pip
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Copiar el archivo requirements.txt
+COPY requirements.txt /requirements.txt
 
-# Copy the rest of the application code
-COPY . .
+# Instalar las dependencias del proyecto
+RUN pip install -r /requirements.txt
 
-# Install aria2 (since it's not included in the Python image)
-RUN apt-get update && apt-get install -y aria2
+# Descargar los archivos del modelo usando aria2c
+RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/resolve/main/model-00001-of-00002.safetensors -d /content/models/Llama-2-7b-chat-hf -o model-00001-of-00002.safetensors && \
+    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/resolve/main/model-00002-of-00002.safetensors -d /content/models/Llama-2-7b-chat-hf -o model-00002-of-00002.safetensors && \
+    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/model.safetensors.index.json -d /content/models/Llama-2-7b-chat-hf -o model.safetensors.index.json && \
+    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/special_tokens_map.json -d /content/models/Llama-2-7b-chat-hf -o special_tokens_map.json && \
+    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/resolve/main/tokenizer.model -d /content/models/Llama-2-7b-chat-hf -o tokenizer.model && \
+    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/tokenizer_config.json -d /content/models/Llama-2-7b-chat-hf -o tokenizer_config.json && \
+    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/config.json -d /content/models/Llama-2-7b-chat-hf -o config.json && \
+    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/generation_config.json -d /content/models/Llama-2-7b-chat-hf -o generation_config.json
 
-# Download the models using aria2
-RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/resolve/main/model-00001-of-00002.safetensors -d /app/content/models/Llama-2-7b-chat-hf -o model-00001-of-00002.safetensors \
-    && aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/resolve/main/model-00002-of-00002.safetensors -d /app/content/models/Llama-2-7b-chat-hf -o model-00002-of-00002.safetensors \
-    && aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/model.safetensors.index.json -d /app/content/models/Llama-2-7b-chat-hf -o model.safetensors.index.json \
-    && aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/special_tokens_map.json -d /app/content/models/Llama-2-7b-chat-hf -o special_tokens_map.json \
-    && aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/resolve/main/tokenizer.model -d /app/content/models/Llama-2-7b-chat-hf -o tokenizer.model \
-    && aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/tokenizer_config.json -d /app/content/models/Llama-2-7b-chat-hf -o tokenizer_config.json \
-    && aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/config.json -d /app/content/models/Llama-2-7b-chat-hf -o config.json \
-    && aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/raw/main/generation_config.json -d /app/content/models/Llama-2-7b-chat-hf -o generation_config.json
+# Crear el archivo de configuración settings.yaml
+RUN echo "dark_theme: true" > /content/settings.yaml && \
+    echo "chat_style: wpp" >> /content/settings.yaml
 
-# Create settings.yaml file
-RUN echo "dark_theme: true" > /app/settings.yaml \
-    && echo "chat_style: wpp" >> /app/settings.yaml
+# Cambiar al directorio /content
+WORKDIR /content
 
-# Expose the necessary port
-EXPOSE 80
-
-# Start the server
-CMD ["python", "/app/content/server.py", "--share", "--settings", "/app/settings.yaml", "--model", "/app/content/models/Llama-2-7b-chat-hf"]
+# Ejecutar el script Python con los parámetros necesarios
+CMD ["python", "server.py", "--share", "--settings", "/content/settings.yaml", "--model", "/content/models/Llama-2-7b-chat-hf"]
