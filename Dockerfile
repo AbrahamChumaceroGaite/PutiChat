@@ -2,16 +2,17 @@
 FROM python:3.10-slim
 
 # Actualiza el sistema e instala las dependencias necesarias
-RUN apt-get update && \
-    apt-get install -y git aria2
+RUN apt-get update && apt-get install -y build-essential aria2 git
 
 # Clona el repositorio y configura el directorio de trabajo
 WORKDIR /app
 RUN git clone -b v2.5 https://github.com/camenduru/text-generation-webui
 
 # Instala las dependencias de Python
-WORKDIR /app/text-generation-webui
+COPY requirements.txt .
 RUN pip install -r requirements.txt
+
+WORKDIR /app/text-generation-webui
 
 # Descarga los modelos y archivos necesarios
 RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/4bit/Llama-2-7b-chat-hf/resolve/main/model-00001-of-00002.safetensors -d models/Llama-2-7b-chat-hf -o model-00001-of-00002.safetensors \
