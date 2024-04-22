@@ -1,9 +1,11 @@
 version: "3.9"
 services:
   putichat:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile  # Nombre del Dockerfile que has creado
     ports:
-      - "8888:7777"
+      - "8888:8887"
     restart: unless-stopped
     deploy:
       resources:
@@ -12,4 +14,4 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    command: sh -c "nvidia-smi && npm run start"
+    command: python3 server.py --share --settings /app/settings.yaml --model /app/text-generation-webui/models/Llama-2-7b-chat-hf
