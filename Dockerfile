@@ -3,8 +3,7 @@ FROM python:3.10-slim
 
 # Actualiza el sistema e instala las dependencias necesarias
 RUN apt-get update && \
-    apt-get install -y git aria2 && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y git aria2
 
 # Clona el repositorio y configura el directorio de trabajo
 WORKDIR /app
