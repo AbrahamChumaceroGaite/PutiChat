@@ -32,4 +32,4 @@ RUN echo "dark_theme: true" > /app/settings.yaml \
 EXPOSE 80
 
 # Start the server
-CMD ["python", "server.py", "--share", "--settings", "/app/settings.yaml", "--model", "/app/content/models/Llama-2-7b-chat-hf"]
+CMD ["python", "/app/content/server.py", "--share", "--settings", "/app/settings.yaml", "--model", "/app/content/models/Llama-2-7b-chat-hf"]
