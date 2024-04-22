@@ -1,19 +1,16 @@
-# Primera etapa: Construye con CUDA para operaciones que requieren GPU
-FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS builder
+# Usa la imagen base adecuada para tu aplicación
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
 
 # Actualiza el sistema e instala las dependencias necesarias
-RUN apt-get update && apt-get install -y build-essential aria2 git
+RUN apt-get update && apt-get install -y build-essential aria2 git python3 python3-pip
 
 # Clona el repositorio y configura el directorio de trabajo
 WORKDIR /app
 RUN git clone -b v2.5 https://github.com/camenduru/text-generation-webui
 
-# Segunda etapa: Usa una imagen final más liviana sin CUDA
-FROM python:3.10-slim
-
 # Instala las dependencias de Python
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 WORKDIR /app/text-generation-webui
 
@@ -31,14 +28,8 @@ RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co
 RUN echo "dark_theme: true" > /app/settings.yaml \
     && echo "chat_style: wpp" >> /app/settings.yaml
 
-
-
-# Copia los archivos necesarios desde la imagen de construcción con CUDA
-COPY --from=builder /app /app
-
-# Establece el directorio de trabajo y expone el puerto si es necesario
-WORKDIR /app/text-generation-webui
+# Expón el puerto si es necesario
 EXPOSE 80
 
 # Ejecuta el servidor cuando se inicie el contenedor
-CMD ["python", "server.py", "--share", "--settings", "/app/settings.yaml", "--model", "/app/text-generation-webui/models/Llama-2-7b-chat-hf"]
+CMD ["python3", "server.py", "--share", "--settings", "/app/settings.yaml", "--model", "/app/text-generation-webui/models/Llama-2-7b-chat-hf"]
