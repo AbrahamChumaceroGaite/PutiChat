@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  putichat:
+    build: .
+    ports:
+      - "8888:7777"
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: sh -c "nvidia-smi && npm run start"
