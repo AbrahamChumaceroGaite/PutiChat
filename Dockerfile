@@ -1,5 +1,5 @@
-# Usa la imagen base adecuada para tu aplicación
-FROM python:3.10-slim
+# Primera etapa: Construye con CUDA para operaciones que requieren GPU
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS builder
 
 # Actualiza el sistema e instala las dependencias necesarias
 RUN apt-get update && apt-get install -y build-essential aria2 git
@@ -28,7 +28,14 @@ RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co
 RUN echo "dark_theme: true" > /app/settings.yaml \
     && echo "chat_style: wpp" >> /app/settings.yaml
 
-# Expón el puerto si es necesario
+# Segunda etapa: Usa una imagen final más liviana sin CUDA
+FROM python:3.10-slim
+
+# Copia los archivos necesarios desde la imagen de construcción con CUDA
+COPY --from=builder /app /app
+
+# Establece el directorio de trabajo y expone el puerto si es necesario
+WORKDIR /app/text-generation-webui
 EXPOSE 80
 
 # Ejecuta el servidor cuando se inicie el contenedor
