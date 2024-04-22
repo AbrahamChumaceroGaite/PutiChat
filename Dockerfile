@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y build-essential aria2 git
 WORKDIR /app
 RUN git clone -b v2.5 https://github.com/camenduru/text-generation-webui
 
+# Segunda etapa: Usa una imagen final más liviana sin CUDA
+FROM python:3.10-slim
+
 # Instala las dependencias de Python
 COPY requirements.txt .
 RUN pip install -r requirements.txt
@@ -28,8 +31,7 @@ RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co
 RUN echo "dark_theme: true" > /app/settings.yaml \
     && echo "chat_style: wpp" >> /app/settings.yaml
 
-# Segunda etapa: Usa una imagen final más liviana sin CUDA
-FROM python:3.10-slim
+
 
 # Copia los archivos necesarios desde la imagen de construcción con CUDA
 COPY --from=builder /app /app
