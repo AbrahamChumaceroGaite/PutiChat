@@ -1,5 +1,5 @@
 # Usar una imagen base
-FROM ubuntu:latest
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
 
 # Actualizar el sistema e instalar dependencias
 RUN apt-get update && \
