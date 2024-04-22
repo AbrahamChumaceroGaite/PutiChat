@@ -25,8 +25,5 @@ RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co
 RUN echo "dark_theme: true" > /content/settings.yaml && \
     echo "chat_style: wpp" >> /content/settings.yaml
 
-# Cambiar al directorio /content
-WORKDIR /content
-
 # Ejecutar el script Python con los parámetros necesarios
-CMD ["python", "server.py", "--share", "--settings", "/content/settings.yaml", "--model", "/content/models/Llama-2-7b-chat-hf"]
+CMD ["python", "/content/server.py", "--share", "--settings", "/content/settings.yaml", "--model", "/content/models/Llama-2-7b-chat-hf"]
