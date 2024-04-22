@@ -18,7 +18,6 @@ warnings.filterwarnings('ignore', category=UserWarning, message='The value passe
 warnings.filterwarnings('ignore', category=UserWarning, message='Field "model_names" has conflict')
 
 with RequestBlocker():
-    from modules import gradio_hijack
     import gradio as gr
 
 import matplotlib
@@ -33,9 +32,23 @@ import time
 from functools import partial
 from pathlib import Path
 from threading import Lock
+
 import yaml
+
 import modules.extensions as extensions_module
-from modules import (chat, training, ui, ui_chat, ui_default, ui_file_saving, ui_model_menu, ui_notebook, ui_parameters, ui_session, utils)
+from modules import (
+    chat,
+    training,
+    ui,
+    ui_chat,
+    ui_default,
+    ui_file_saving,
+    ui_model_menu,
+    ui_notebook,
+    ui_parameters,
+    ui_session,
+    utils
+)
 from modules.extensions import apply_extensions
 from modules.LoRA import add_lora_to_model
 from modules.models import load_model
@@ -132,9 +145,11 @@ def create_interface():
         ui_model_menu.create_event_handlers()
 
         # Interface launch events
-        shared.gradio['interface'].load(lambda: None, None, None, js=f"() => {{if ({str(shared.settings['dark_theme']).lower()}) {{ document.getElementsByTagName('body')[0].classList.add('dark'); }} }}")
-        shared.gradio['interface'].load(lambda: None, None, None, js=f"() => {{{js}}}")
-        shared.gradio['interface'].load(lambda x: None, gradio('show_controls'), None, js=f'(x) => {{{ui.show_controls_js}; toggle_controls(x)}}')
+        if shared.settings['dark_theme']:
+            shared.gradio['interface'].load(lambda: None, None, None, _js="() => document.getElementsByTagName('body')[0].classList.add('dark')")
+
+        shared.gradio['interface'].load(lambda: None, None, None, _js=f"() => {{{js}}}")
+        shared.gradio['interface'].load(None, gradio('show_controls'), None, _js=f'(x) => {{{ui.show_controls_js}; toggle_controls(x)}}')
         shared.gradio['interface'].load(partial(ui.apply_interface_values, {}, use_persistent=True), None, gradio(ui.list_interface_input_elements()), show_progress=False)
         shared.gradio['interface'].load(chat.redraw_html, gradio(ui_chat.reload_arr), gradio('display'))
 
@@ -142,10 +157,9 @@ def create_interface():
         extensions_module.create_extensions_block()  # Extensions block
 
     # Launch the interface
-    shared.gradio['interface'].queue()
+    shared.gradio['interface'].queue(concurrency_count=64)
     with OpenMonkeyPatch():
         shared.gradio['interface'].launch(
-            max_threads=64,
             prevent_thread_lock=True,
             share=shared.args.share,
             server_name=None if not shared.args.listen else (shared.args.listen_host or '0.0.0.0'),
@@ -154,8 +168,7 @@ def create_interface():
             auth=auth or None,
             ssl_verify=False if (shared.args.ssl_keyfile or shared.args.ssl_certfile) else True,
             ssl_keyfile=shared.args.ssl_keyfile,
-            ssl_certfile=shared.args.ssl_certfile,
-            allowed_paths=["cache", "css", "extensions", "js"]
+            ssl_certfile=shared.args.ssl_certfile
         )
 
 
