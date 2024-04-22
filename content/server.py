@@ -33,23 +33,9 @@ import time
 from functools import partial
 from pathlib import Path
 from threading import Lock
-
 import yaml
-
 import modules.extensions as extensions_module
-from modules import (
-    chat,
-    training,
-    ui,
-    ui_chat,
-    ui_default,
-    ui_file_saving,
-    ui_model_menu,
-    ui_notebook,
-    ui_parameters,
-    ui_session,
-    utils
-)
+from modules import (chat, training, ui, ui_chat, ui_default, ui_file_saving, ui_model_menu, ui_notebook, ui_parameters, ui_session, utils)
 from modules.extensions import apply_extensions
 from modules.LoRA import add_lora_to_model
 from modules.models import load_model
