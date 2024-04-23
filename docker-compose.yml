@@ -1,11 +1,9 @@
 version: "3.9"
 services:
   putichat:
-    build: 
-      context: .
-      dockerfile: Dockerfile  
+    build: .
     ports:
-      - "8888:7777"
+      - "8888:8887"
     restart: unless-stopped
     deploy:
       resources:
@@ -14,4 +12,4 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-   command: sh -c "nvidia-smi"
+    command: sh -c "nvidia-smi && python3 /app/text-generation-webui/server.py --share --settings /app/settings.yaml --model /app/text-generation-webui/models/Llama-2-7b-chat-hf"
