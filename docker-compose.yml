@@ -14,3 +14,4 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+   command: sh -c "nvidia-smi"
